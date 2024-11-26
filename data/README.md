@@ -1,3 +1,5 @@
+# The data directory contains only the tables
+
 This file is aimed to explain the data format.
 
 
