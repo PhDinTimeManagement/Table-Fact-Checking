@@ -114,34 +114,36 @@ def convert_to_tsv(out_file, examples, dataset_type, meta, scan):
                 if len(remaining_table) > 0:
                     table_cells, table_feats = [], []
 
+                    # Comments is added later by DAI Xin
                     len_total += 1
                     if scan == 'vertical':
                         for column_type, column_cells in remaining_table.items():
-                            column_type = ' '.join(column_type.split('_'))
-                            table_cells.extend([column_type, 'are :'])
+                            column_type = ' '.join(column_type.split('_')) # Clean up column name, replace underscores with spaces
+                            table_cells.extend([column_type, 'are :']) # Add the column name as part of the tokenized string
                             this_column = []
                             for idx, c in enumerate(column_cells):
-                                this_column.append("row {} is {}".format(idx + 1, c))
-                            this_column = join_unicode(TBL_DELIM, this_column)
-                            table_cells.append(this_column)
-                            table_cells.append('.')
-                            table_feats.append(column_type)
+                                this_column.append("row {} is {}".format(idx + 1, c)) # Add each row's value in the column
+                            this_column = join_unicode(TBL_DELIM, this_column) # Join row data using the table delimiter
+                            table_cells.append(this_column) # Add the formatted column string
+                            table_cells.append('.') # End the column description
+                            table_feats.append(column_type) # Keep track of the column name as a feature
                     else:
-                        # stupid but to reserve order
+                        # Original Comment # stupid but to reserve order
+                        # This block is to do horizontal scanning however
                         table_column_names, table_column_cells = [], []
                         for column_type, column_cells in remaining_table.items():
-                            column_type = ' '.join(column_type.split('_'))
-                            table_feats.append(column_type)
-                            table_column_names.append(column_type)
-                            table_column_cells.append(column_cells)
-                        for idx, row in enumerate(zip(*table_column_cells)):
-                            table_cells.append('row {} is :'.format(idx + 1))
+                            column_type = ' '.join(column_type.split('_')) # Clean up column name
+                            table_feats.append(column_type) # Add column name to feature list
+                            table_column_names.append(column_type) # Save column name
+                            table_column_cells.append(column_cells) # Save column values
+                        for idx, row in enumerate(zip(*table_column_cells)): # Iterate over rows in the table
+                            table_cells.append('row {} is :'.format(idx + 1)) # Add row description
                             this_row = []
-                            for col, tk in zip(table_column_names, row):
+                            for col, tk in zip(table_column_names, row): # Combine column names with cell values for the row
                                 this_row.append('{} is {}'.format(col, tk))
-                            this_row = join_unicode(TBL_DELIM, this_row)
-                            table_cells.append(this_row)
-                            table_cells.append('.')
+                            this_row = join_unicode(TBL_DELIM, this_row) # Join column-value pairs with a delimiter
+                            table_cells.append(this_row) # Add the formatted row string
+                            table_cells.append('.') # End the row description
 
                     table_str = ' '.join(table_cells)
                     out_items = [example['csv'],
