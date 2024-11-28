@@ -1,81 +1,59 @@
-# New
-# Author: DAI Xin
-# This python code calculate the total number of instances, i.e. m.
-
-
 import os
 import csv
 import json
 
-# Count the total number of rows in all CSV files
-def count_rows_in_csv(directory):
-    total_rows = 0
-    for file_name in os.listdir(directory):
-        if file_name.endswith(".csv"):
-            file_path = os.path.join(directory, file_name)
-            with open(file_path, 'r', encoding='utf-8') as csv_file:
-                reader = csv.reader(csv_file)
-                rows = sum(1 for row in reader)  # Count rows
-                rows -= 1  # Exclude the header
-                total_rows += rows
-                print(f"{file_name}: {rows} rows")
-    return total_rows
+import json
+import os
 
-# Count the total number of statements in the JSON file
-def count_statements_in_json(json_file):
-    total_statements = 0
-    with open(json_file, 'r', encoding='utf-8') as file:
-        data = json.load(file)
-        # The statements are stored in the inner lists of the values of the dictionary
-        # Separated by comma
-        for key, value in data.items():
-            if isinstance(value, list) and len(value) > 0 and isinstance(value[0], list):
-                statements = len(value[0])
-                total_statements += statements
-                print(f"{key}: {statements} statements")
-    return total_statements
+# # Function to combine two JSON files
+# def combine_json_files(file1, file2, output_file):
+#     combined_data = {}
+#
+#     # Load the first JSON file
+#     with open(file1, 'r', encoding='utf-8') as f1:
+#         data1 = json.load(f1)
+#
+#     # Load the second JSON file
+#     with open(file2, 'r', encoding='utf-8') as f2:
+#         data2 = json.load(f2)
+#
+#     # Merge the data from both files
+#     # If keys are unique, they will simply be added
+#     # If keys overlap, the second file's data will overwrite the first file's data
+#     combined_data.update(data1)
+#     combined_data.update(data2)
+#
+#     # Save the combined data to a new file
+#     with open(output_file, 'w', encoding='utf-8') as fout:
+#         json.dump(combined_data, fout, indent=2, ensure_ascii=False)
+#
+#     print(f"Combined JSON file saved to: {output_file}")
 
-# Count the total number of columns in all CSV files
-def count_columns_in_csv(directory):
-    total_columns = 0
-    for file_name in os.listdir(directory):
+
+def calculate_data_size(csv_directory):
+    total_instances = 0  # Represents m * d
+    for file_name in os.listdir(csv_directory):
         if file_name.endswith(".csv"):
-            file_path = os.path.join(directory, file_name)
+            file_path = os.path.join(csv_directory, file_name)
             with open(file_path, 'r', encoding='utf-8') as csv_file:
-                first_line = csv_file.readline().strip()  # Read the first row
-                columns = first_line.split("#")  # Split the row by '#' to identify columns
-                num_columns = len(columns)  # Count the columns
-                total_columns += num_columns
-                print(f"{file_name}: {num_columns} columns")
-    return total_columns
+                header = csv_file.readline().strip()
+                num_columns = len(header.split('#'))  # Count the number of columns based on '#'
+
+                num_rows = sum(1 for _ in csv_file)  # Count rows excluding the header
+
+                table_size = num_columns * num_rows # Calculate m * d
+                total_instances += table_size
+
+                print(f"{file_name}: {num_rows} rows, {num_columns} columns -> {table_size} instances")
+    return total_instances
 
 # Paths to access the data
 csv_directory = "../data/all_csv"
-json_file_path_1 = "../collected_data/r1_training_all.json"
-json_file_path_2 = "../collected_data/r2_training_all.json"
 
-# Calculations of rows, statements
-print("Counting rows in CSV files...")
-total_csv_rows = count_rows_in_csv(csv_directory)
+# Calculate the data size (m * d)
+print("Calculating data size (m * d) from CSV files...")
+total_csv_data_size = calculate_data_size(csv_directory)
 
-print("Counting statements in JSON file...")
-json_statements_1 = count_statements_in_json(json_file_path_1)
-json_statements_2 = count_statements_in_json(json_file_path_2)
-total_json_statements = json_statements_1 + json_statements_2
-
-# Calculations of columns
-print("Counting columns in CSV files...")
-total_columns = count_columns_in_csv(csv_directory)
-
-# Calculations of rows, statements, columns
+# Results
 print()
-print(f"Total rows in CSV files: {total_csv_rows}")
-print(f"Total statements in JSON file: {total_json_statements}")
-print(f"Total columns across all CSV files: {total_columns}")
-
-print()
-print(f"m: Grand Total of Instances (rows + statements): {total_csv_rows + total_json_statements}")
-print(f"d: Toal features (columns) across all CSV files: {total_columns}")
-
-# Final result of datasize
-print(f"m * d = {(total_csv_rows + total_json_statements) * total_columns}")
+print(f"Total data size (m * d) from CSV files: {total_csv_data_size}")
